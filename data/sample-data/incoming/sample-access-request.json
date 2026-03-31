@@ -1,0 +1,16 @@
+{
+  "subject_name": "Alice Martin",
+  "subject_email": "alice.martin@email.example",
+  "subject_jurisdiction": "EU",
+  "request_type": "access",
+  "submitted_date": "2026-03-31",
+  "submitted_via": "web-portal",
+  "identity_verification": {
+    "email_verified": true,
+    "id_document": "passport",
+    "verification_date": "2026-03-31"
+  },
+  "request_details": "I would like to receive a complete copy of all personal data you hold about me, including any usage logs, marketing preferences, and billing history.",
+  "preferred_format": "json",
+  "preferred_language": "en"
+}

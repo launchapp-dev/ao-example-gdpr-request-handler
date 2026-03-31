@@ -1,0 +1,10 @@
+schedules:
+  - id: daily-deadline-monitor
+    cron: "0 8 * * *"
+    workflow_ref: deadline-monitor
+    enabled: true
+
+  - id: weekly-compliance-report
+    cron: "0 9 * * 1"
+    workflow_ref: compliance-report
+    enabled: true

@@ -1,0 +1,16 @@
+{
+  "subject_name": "Bob Chen",
+  "subject_email": "bob.chen@email.example",
+  "subject_jurisdiction": "EU",
+  "request_type": "erasure",
+  "submitted_date": "2026-03-28",
+  "submitted_via": "email",
+  "identity_verification": {
+    "email_verified": true,
+    "id_document": "driving_license",
+    "verification_date": "2026-03-28"
+  },
+  "request_details": "I have closed my account and wish to exercise my right to be forgotten. Please delete all personal data you hold about me.",
+  "account_closed_date": "2026-03-20",
+  "erasure_scope": "full"
+}

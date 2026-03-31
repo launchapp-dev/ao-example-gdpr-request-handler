@@ -1,0 +1,54 @@
+templates:
+  access:
+    subject_line: "Your Data Access Request — Reference {request_id}"
+    opening: |
+      We have received your request to access the personal data we hold about you,
+      submitted on {submitted_date}. We are pleased to provide the following information
+      in response to your request under {regulation_name}.
+    deadline_statement: |
+      We are required to respond to your request within {deadline_days} days of receipt.
+      Your request was received on {submitted_date} and our deadline is {deadline_date}.
+    closing: |
+      If you have any questions about this response, or if you wish to exercise any other
+      data subject rights, please contact our Data Protection Officer at {dpo_email}.
+      You also have the right to lodge a complaint with your supervisory authority.
+
+  erasure:
+    subject_line: "Your Erasure Request — Reference {request_id}"
+    opening: |
+      We have received your request for erasure of your personal data (the "right to be
+      forgotten"), submitted on {submitted_date}. We have carefully reviewed your request
+      in accordance with {regulation_name}.
+    exceptions_preamble: |
+      Please note that while we have taken steps to erase your personal data, we are
+      required by law to retain certain records for the following reasons:
+    closing: |
+      If you believe we have not fully complied with your erasure request, you have the
+      right to lodge a complaint with your supervisory authority. Our Data Protection
+      Officer can be reached at {dpo_email}.
+
+  portability:
+    subject_line: "Your Data Portability Request — Reference {request_id}"
+    opening: |
+      We have received your request for a machine-readable copy of your personal data
+      under the right to data portability (Article 20, GDPR), submitted on {submitted_date}.
+      Enclosed is a structured export of the personal data you provided to us and which
+      we processed based on your consent or for the performance of a contract.
+    format_note: |
+      Your data is provided in JSON format, which is structured, commonly used, and
+      machine-readable. A data dictionary describing each field is included in the export.
+    closing: |
+      This export covers data processed by automated means that you provided directly to
+      us. It does not include data derived from your use of our services (e.g., usage logs),
+      as these are not subject to the portability right under Article 20.
+
+  rectification:
+    subject_line: "Your Data Rectification Request — Reference {request_id}"
+    opening: |
+      We have received your request to correct inaccurate personal data we hold about you,
+      submitted on {submitted_date}. We have reviewed your request and taken the following
+      corrective actions.
+    closing: |
+      We have also notified the following third-party processors who may hold copies of the
+      data that has been corrected. If you believe any corrections are incomplete or incorrect,
+      please contact {dpo_email}.

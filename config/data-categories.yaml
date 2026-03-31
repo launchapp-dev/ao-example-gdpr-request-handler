@@ -1,0 +1,93 @@
+categories:
+  - id: identity
+    name: "Identity Data"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Full name"
+      - "Username"
+      - "Date of birth"
+      - "Government ID number"
+      - "Profile photo"
+    sensitive: false
+    portability_eligible: true
+
+  - id: contact
+    name: "Contact Data"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Email address"
+      - "Phone number"
+      - "Postal address"
+    sensitive: false
+    portability_eligible: true
+
+  - id: billing
+    name: "Financial / Billing Data"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Invoice history"
+      - "Payment history"
+      - "Account balance"
+      - "Refund records"
+    sensitive: false
+    portability_eligible: true
+    common_retention: "7 years (tax law)"
+
+  - id: payment_info
+    name: "Payment Instruments"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Credit/debit card last 4 digits (full numbers tokenized only)"
+      - "Bank account reference"
+      - "Billing address"
+    sensitive: true
+    portability_eligible: false
+    note: "Full card numbers never stored — handled by PCI-DSS compliant processor (Stripe)"
+
+  - id: usage_logs
+    name: "Usage / Behavioral Data"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Login timestamps"
+      - "Pages viewed"
+      - "Features used"
+      - "Session duration"
+      - "Clicks and interactions"
+    sensitive: false
+    portability_eligible: true
+    common_retention: "90 days (legitimate interest: security)"
+
+  - id: ip_addresses
+    name: "Technical Identifiers"
+    gdpr_article: "Article 4(1) — considered personal data when linkable to individual"
+    examples:
+      - "IP addresses"
+      - "Device IDs"
+      - "Cookie IDs"
+      - "Browser fingerprint"
+    sensitive: false
+    portability_eligible: false
+    note: "Considered personal data under GDPR recital 30"
+
+  - id: marketing_preferences
+    name: "Marketing Preferences & Consent Records"
+    gdpr_article: "Article 4(11) — consent records"
+    examples:
+      - "Email opt-in/opt-out status"
+      - "Marketing consent timestamp"
+      - "Communication preferences"
+      - "Unsubscribe history"
+    sensitive: false
+    portability_eligible: true
+    note: "Consent records must be retained even after erasure to demonstrate lawful basis"
+
+  - id: preferences
+    name: "User Preferences"
+    gdpr_article: "Article 4(1)"
+    examples:
+      - "Language setting"
+      - "Timezone"
+      - "Notification preferences"
+      - "UI customizations"
+    sensitive: false
+    portability_eligible: true

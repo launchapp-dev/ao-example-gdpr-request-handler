@@ -1,0 +1,36 @@
+{
+  "user_id": "usr_002",
+  "email": "bob.chen@email.example",
+  "name": "Bob Chen",
+  "username": "bob_chen",
+  "date_of_birth": "1992-11-08",
+  "phone": "+1-415-555-0128",
+  "address": {
+    "street": "456 Oak Avenue",
+    "city": "San Francisco",
+    "state": "CA",
+    "country": "US",
+    "postcode": "94105"
+  },
+  "created_at": "2024-01-15T14:30:00Z",
+  "account_status": "closed",
+  "account_closed_at": "2026-03-20T11:00:00Z",
+  "language": "en-US",
+  "timezone": "America/Los_Angeles",
+  "notifications": {
+    "email": false,
+    "sms": false,
+    "marketing": false
+  },
+  "marketing_consent": {
+    "given": false,
+    "timestamp": "2024-01-15T14:30:00Z",
+    "opted_out_at": "2025-06-10T09:00:00Z",
+    "version": "privacy-policy-v3"
+  },
+  "subscription": {
+    "plan": "starter",
+    "status": "cancelled",
+    "cancelled_at": "2026-03-20T11:00:00Z"
+  }
+}

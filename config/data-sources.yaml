@@ -1,0 +1,103 @@
+data_sources:
+  - id: user-database
+    type: database
+    description: "Primary user accounts and profiles (PostgreSQL)"
+    categories:
+      - identity
+      - contact
+      - preferences
+    search_instructions: "SELECT * FROM users WHERE email = '{email}' OR username = '{username}'"
+    deletion_method: |
+      BEGIN TRANSACTION;
+      UPDATE users SET email = CONCAT('deleted-', id, '@redacted.invalid'),
+                       name = 'Redacted User',
+                       phone = NULL,
+                       address = NULL
+      WHERE email = '{email}';
+      -- Hard delete after 30-day soft-delete retention window
+      DELETE FROM users WHERE email LIKE 'deleted-%@redacted.invalid'
+        AND deleted_at < NOW() - INTERVAL '30 days';
+      COMMIT;
+    has_dependencies: true
+    dependencies:
+      - billing-system
+      - subscriptions-service
+    sample_data_path: "data/sample-data/users/"
+
+  - id: billing-system
+    type: database
+    description: "Payment and invoice records (PostgreSQL)"
+    categories:
+      - billing
+      - payment_info
+    search_instructions: "SELECT * FROM invoices JOIN customers ON customers.id = invoices.customer_id WHERE customers.email = '{email}'"
+    retention_required: true
+    retention_basis: "legal_obligation"
+    retention_basis_article: "GDPR Article 17(3)(b) — legal obligation (tax law requires 7-year retention)"
+    retention_period: "7_years_from_invoice_date"
+    deletion_method: "Anonymize: replace customer name/email with 'Redacted' after account closure, retain financial amounts for tax compliance"
+    has_dependencies: false
+
+  - id: subscriptions-service
+    type: database
+    description: "Active and historical subscriptions"
+    categories:
+      - billing
+      - preferences
+    search_instructions: "SELECT * FROM subscriptions WHERE user_email = '{email}'"
+    deletion_method: "Cancel active subscriptions first, then DELETE FROM subscriptions WHERE user_email = '{email}' AND status = 'cancelled'"
+    has_dependencies: false
+    deletion_prerequisite: "subscription must be in 'cancelled' status"
+
+  - id: application-logs
+    type: filesystem
+    path: "data/sample-data/logs/"
+    description: "Application access and usage logs (JSON Lines format)"
+    categories:
+      - usage_logs
+      - ip_addresses
+    search_instructions: "grep for email address and user_id in log files; also search for IP addresses historically associated with the account"
+    deletion_method: "Redact matching lines: replace email/user_id with '[REDACTED]' and IP with '0.0.0.0'"
+    retention_required: true
+    retention_basis: "legitimate_interest"
+    retention_basis_article: "GDPR Article 17(3)(c) — legitimate interests in security and fraud detection (90 days)"
+    retention_period: "90_days"
+    has_dependencies: false
+
+  - id: email-marketing
+    type: third_party
+    description: "Email marketing platform (Mailchimp)"
+    categories:
+      - contact
+      - marketing_preferences
+    search_instructions: "Search subscriber list by email address via API"
+    deletion_method: "DELETE /3.0/lists/{list_id}/members/{subscriber_hash} — also unsubscribe to stop further processing"
+    third_party_name: "Mailchimp (Intuit Inc.)"
+    third_party_contact: "privacy@mailchimp.com"
+    third_party_dpa_signed: true
+    api_docs: "https://mailchimp.com/developer/marketing/api/list-members/"
+    has_dependencies: false
+
+  - id: analytics-platform
+    type: third_party
+    description: "Product analytics (Mixpanel)"
+    categories:
+      - usage_logs
+      - ip_addresses
+    search_instructions: "Query user profile by email via Mixpanel Data Export API"
+    deletion_method: "POST /api/2.0/engage/profile/delete — Mixpanel GDPR erasure endpoint"
+    third_party_name: "Mixpanel Inc."
+    third_party_contact: "privacy@mixpanel.com"
+    third_party_dpa_signed: true
+    has_dependencies: false
+
+  - id: support-system
+    type: database
+    description: "Customer support tickets and chat history (Zendesk)"
+    categories:
+      - contact
+      - identity
+    search_instructions: "Search tickets by requester email: GET /api/v2/search.json?query=requester:{email}"
+    deletion_method: "Anonymize tickets: replace user info with 'Anonymized User', retain ticket content for internal quality review for 90 days"
+    retention_required: false
+    has_dependencies: false

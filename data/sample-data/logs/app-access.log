@@ -1,0 +1,10 @@
+{"timestamp":"2026-03-01T08:12:34Z","event":"login","user_id":"usr_001","email":"alice.martin@email.example","ip":"198.51.100.42","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)","session_id":"sess_abc123"}
+{"timestamp":"2026-03-01T08:13:01Z","event":"page_view","user_id":"usr_001","email":"alice.martin@email.example","ip":"198.51.100.42","page":"/dashboard","session_id":"sess_abc123"}
+{"timestamp":"2026-03-01T08:15:22Z","event":"feature_use","user_id":"usr_001","email":"alice.martin@email.example","ip":"198.51.100.42","feature":"export_data","session_id":"sess_abc123"}
+{"timestamp":"2026-03-02T14:33:11Z","event":"login","user_id":"usr_002","email":"bob.chen@email.example","ip":"203.0.113.17","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64)","session_id":"sess_def456"}
+{"timestamp":"2026-03-02T14:34:05Z","event":"page_view","user_id":"usr_002","email":"bob.chen@email.example","ip":"203.0.113.17","page":"/account/settings","session_id":"sess_def456"}
+{"timestamp":"2026-03-02T14:35:30Z","event":"account_update","user_id":"usr_002","email":"bob.chen@email.example","ip":"203.0.113.17","field":"phone","session_id":"sess_def456"}
+{"timestamp":"2026-03-05T10:01:00Z","event":"login","user_id":"usr_001","email":"alice.martin@email.example","ip":"198.51.100.42","user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)","session_id":"sess_ghi789"}
+{"timestamp":"2026-03-10T16:45:22Z","event":"login","user_id":"usr_003","email":"carol.white@email.example","ip":"192.0.2.88","user_agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)","session_id":"sess_jkl012"}
+{"timestamp":"2026-03-15T09:22:11Z","event":"logout","user_id":"usr_002","email":"bob.chen@email.example","ip":"203.0.113.17","session_id":"sess_mno345"}
+{"timestamp":"2026-03-20T11:00:00Z","event":"account_close","user_id":"usr_002","email":"bob.chen@email.example","ip":"203.0.113.17","reason":"user_initiated","session_id":"sess_pqr678"}

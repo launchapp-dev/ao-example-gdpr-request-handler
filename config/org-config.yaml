@@ -1,0 +1,39 @@
+organization:
+  name: "Example Corp"
+  dpo_name: "Jane Smith"
+  dpo_email: "dpo@example.com"
+  dpo_phone: "+1-555-000-1234"
+  legal_entity: "Example Corp, Inc."
+  registered_address: "123 Main Street, San Francisco, CA 94105, USA"
+  ico_registration: "ZA123456"  # UK ICO registration number (if applicable)
+  eu_representative: "EU DataRep GmbH, Berlin, Germany"  # required for non-EU orgs with EU customers
+  privacy_policy_url: "https://example.com/privacy"
+  data_request_portal: "https://privacy.example.com/request"
+
+regulations:
+  default: "gdpr"
+  gdpr:
+    deadline_days: 30
+    extension_allowed: true
+    max_extension_days: 60
+    extension_trigger: "complex"  # extend if complexity = "complex"
+  ccpa:
+    deadline_days: 45
+    extension_allowed: true
+    max_extension_days: 90
+
+alerts:
+  at_risk_threshold_days: 7   # flag as at-risk when this many days remain
+  notify_dpo_on_overdue: true
+  notify_dpo_on_at_risk: true
+  escalation_contacts:
+    - role: "DPO"
+      email: "dpo@example.com"
+    - role: "Legal"
+      email: "legal@example.com"
+
+processing:
+  auto_extend_complex: false   # require manual approval for extensions
+  require_identity_verification: true
+  hold_erasure_if_unverified: true
+  log_retention_years: 5       # keep audit trail for 5 years per GDPR Article 5(2)

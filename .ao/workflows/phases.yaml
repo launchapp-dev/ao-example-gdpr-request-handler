@@ -1,0 +1,243 @@
+phases:
+  # ─── process-request workflow phases ───────────────────────────────────────
+
+  validate-request:
+    mode: command
+    command:
+      program: bash
+      args: ["-c", "bash scripts/validate-request.sh"]
+      cwd_mode: project_root
+      timeout_secs: 30
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  classify-request:
+    mode: agent
+    agent: intake-classifier
+    directive: |
+      A new Data Subject Request needs classification. The request file has been validated
+      and placed in data/requests/ by the validate-request phase.
+
+      Steps:
+      1. Find the most recently created request directory in data/requests/ that has status "validated"
+         (check status.json in each directory)
+      2. Read request.json and determine:
+         - Exact request type (access / erasure / portability / rectification)
+         - Sub-type and scope (full vs selective for erasure, format preference for portability)
+         - Applicable regulation (gdpr vs ccpa) based on subject_jurisdiction field
+         - Deadline: 30 days from submitted_date for GDPR, 45 days for CCPA
+         - Complexity: "complex" if multiple exception types, unverified identity, or large data scope
+         - Identity verification status: verified if email_verified=true AND id_document present
+         - Priority: "urgent" if submitted_date is within 7 days of the deadline
+      3. Check memory MCP for prior requests from the same email address
+      4. Write classification.json to data/requests/{request-id}/
+      5. Update data/requests/{request-id}/status.json → status: "classified"
+      6. If identity is unverified for an erasure request, set priority: "urgent" and note
+         that erasure is on hold pending identity confirmation
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  locate-data:
+    mode: agent
+    agent: data-locator
+    directive: |
+      Search all configured data sources for personal data belonging to the request subject.
+
+      Steps:
+      1. Find the request currently in "classified" status (check data/requests/*/status.json)
+      2. Read data/requests/{request-id}/classification.json for the subject email and scope
+      3. Read config/data-sources.yaml to get the complete list of data sources to search
+      4. Read config/data-categories.yaml to understand all data categories to check for
+      5. Check memory MCP for previously discovered data locations for this subject's email
+      6. For each data source in the config:
+         a. For filesystem sources: use filesystem MCP to read files in the specified path,
+            search for the subject's email address and name
+         b. For database sources: document the query that would be run (the actual DB is simulated
+            in data/sample-data/), and check data/sample-data/ for matching records
+         c. For third-party sources: document what data the provider likely holds per their
+            data processing agreement
+         d. Record all findings: data_found, categories, record_count, contains_sensitive,
+            retention_policy, deletion_dependencies, exceptions
+      7. Write comprehensive data-inventory.json to data/requests/{request-id}/
+      8. Store discovered data locations in memory MCP keyed by subject email
+      9. Update status.json → status: "data-located"
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  review-completeness:
+    mode: agent
+    agent: data-locator
+    directive: |
+      Review the data inventory for completeness before proceeding to plan generation.
+
+      Steps:
+      1. Find the request in "data-located" status
+      2. Read data/requests/{request-id}/data-inventory.json
+      3. Read config/data-sources.yaml — verify EVERY source was searched
+      4. Read config/data-categories.yaml — verify EVERY category was assessed (even if not found)
+      5. Check for any source marked as "unreachable" or "error" in the inventory
+      6. Check for any category not mentioned in the inventory at all
+
+      Produce verdict:
+      - "advance" if: all sources searched, all categories assessed, no unreachable sources
+      - "rework" if: any source was skipped, any source was unreachable, key categories missing
+
+      In reasoning: cite exactly which sources or categories are missing.
+      In missing_sources: list the source IDs that need to be searched.
+    decision_contract:
+      required_fields:
+        - verdict
+        - reasoning
+        - missing_sources
+    capabilities:
+      mutates_state: false
+      writes_files: false
+
+  generate-plan:
+    mode: agent
+    agent: compliance-planner
+    directive: |
+      Generate the compliance action plan for this Data Subject Request.
+
+      Steps:
+      1. Find the request that has passed review-completeness (status: "data-located" with complete inventory)
+      2. Read data/requests/{request-id}/classification.json for the request type
+      3. Read data/requests/{request-id}/data-inventory.json for what was found
+      4. Read config/response-templates.yaml for letter template guidance
+      5. Read the appropriate template from templates/ for the request type
+      6. Use sequential-thinking MCP to analyze complex dependencies (especially for erasure)
+      7. Generate the appropriate plan:
+         - ACCESS: data export document + response letter
+         - ERASURE: ordered deletion steps + exceptions list + third-party notification list + response letter
+         - PORTABILITY: export specification + data dictionary + response letter
+         - RECTIFICATION: per-system correction instructions + response letter
+      8. Write action-plan.json to data/requests/{request-id}/
+      9. Write response-letter-draft.md to data/requests/{request-id}/
+      10. Update status.json → status: "plan-generated"
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  generate-audit-trail:
+    mode: agent
+    agent: audit-reporter
+    directive: |
+      Produce the formal compliance audit trail and finalized response letter for this request.
+
+      Steps:
+      1. Find the request in "plan-generated" status
+      2. Read ALL request artifacts:
+         - data/requests/{request-id}/request.json
+         - data/requests/{request-id}/classification.json
+         - data/requests/{request-id}/data-inventory.json
+         - data/requests/{request-id}/action-plan.json
+         - data/requests/{request-id}/response-letter-draft.md
+      3. Read templates/audit-trail.md for the audit document structure
+      4. Produce output/audit-trails/{request-id}-audit.md — complete compliance audit record
+         suitable for regulatory review. Include every step, decision, and exception.
+      5. Produce output/response-letters/{request-id}-response.md — finalized formal response letter
+         to the data subject. Professional, legally accurate, clearly explains actions taken.
+      6. Update data/requests/{request-id}/status.json → status: "completed", completed_at: <timestamp>
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  record-completion:
+    mode: command
+    command:
+      program: bash
+      args: ["-c", "bash scripts/record-completion.sh"]
+      cwd_mode: project_root
+      timeout_secs: 30
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  # ─── deadline-monitor workflow phases ──────────────────────────────────────
+
+  scan-deadlines:
+    mode: command
+    command:
+      program: bash
+      args: ["-c", "bash scripts/scan-deadlines.sh"]
+      cwd_mode: project_root
+      timeout_secs: 30
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  assess-risk:
+    mode: agent
+    agent: deadline-tracker
+    directive: |
+      Assess the deadline risk for all open Data Subject Requests.
+
+      Steps:
+      1. Read data/deadline-scan.json (generated by scan-deadlines command phase)
+      2. For each open request, read its full status: data/requests/{request_id}/status.json
+         and data/requests/{request_id}/classification.json
+      3. Categorize each request as: on-track / at-risk / overdue / extension-eligible
+         Per rules: at-risk if days_remaining ≤ 7 OR stalled in same phase > 3 days
+      4. Check memory MCP for velocity data — compare current phase duration against historical norms
+      5. For at-risk and overdue: write specific escalation notes per request
+      6. Write data/deadline-assessment.json with full categorized list
+      7. Write output/deadline-report.md with traffic-light summary
+         Format: table with columns: Request ID | Subject | Type | Deadline | Days Left | Status | Action Required
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  generate-alerts:
+    mode: command
+    command:
+      program: bash
+      args: ["-c", "bash scripts/generate-alerts.sh"]
+      cwd_mode: project_root
+      timeout_secs: 30
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  # ─── compliance-report workflow phases ─────────────────────────────────────
+
+  aggregate-metrics:
+    mode: command
+    command:
+      program: bash
+      args: ["-c", "bash scripts/aggregate-metrics.sh"]
+      cwd_mode: project_root
+      timeout_secs: 60
+    capabilities:
+      mutates_state: true
+      writes_files: true
+
+  generate-dashboard:
+    mode: agent
+    agent: audit-reporter
+    directive: |
+      Generate the weekly compliance dashboard and DPO summary report.
+
+      Steps:
+      1. Read data/weekly-metrics.json (generated by aggregate-metrics phase)
+      2. List recent audit trails from output/audit-trails/ (last 7 days of completed requests)
+      3. Check memory MCP for previous weeks' metrics to identify trends
+      4. Produce output/weekly-dashboard.md containing:
+         - Executive summary (total requests this week, compliance rate, open items)
+         - Request volume by type (bar chart in ASCII or markdown table)
+         - Compliance rate trend (% completed within deadline — this week vs. previous 4 weeks)
+         - Average processing time by request type
+         - Open request aging (how long each open request has been in the queue)
+         - Top data categories requested (useful for DPO to understand data footprint)
+         - Process improvement recommendations based on patterns observed
+      5. Produce output/compliance-summary.md containing:
+         - Formal compliance posture statement (suitable for board/regulatory review)
+         - Key risk indicators: any overdue requests this week, systemic delays
+         - Comparison to regulatory requirements (GDPR Article 12 timeliness obligations)
+         - Certification of processing within regulatory timeframes (or disclosure of exceptions)
+      6. Store current week's metrics in memory MCP for future trend comparison
+    capabilities:
+      mutates_state: true
+      writes_files: true
